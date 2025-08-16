@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.venv/
+venv/
+.env
+
+# FastAPI storage
+backend/storage/
+
+# Logs
+*.log
+
+# Node / React
+node_modules/
+.npm/
+dist/
+build/
+
+# OS junk
+.DS_Store
+Thumbs.db
+*/
