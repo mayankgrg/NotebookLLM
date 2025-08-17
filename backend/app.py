@@ -1,35 +1,40 @@
-import os
-from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File
 from typing import List
+import shutil
+from pathlib import Path
 
-from models import ChatRequest, ChatResponse, IngestResponse, DocMeta
-from rag_core import store, answer_query
+from rag_core import RAG
 
-app = FastAPI(title="Notebook-LLM-lite", version="0.1.0")
+app = FastAPI()
+rag = RAG()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+UPLOAD_DIR = Path("data/uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+@app.post("/upload/")
+async def upload_files(files: List[UploadFile] = File(...)):
+    file_paths = []
+    for file in files:
+        file_path = UPLOAD_DIR / file.filename
+        with open(file_path, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+        file_paths.append(str(file_path))
+    
+    rag.ingest_documents(file_paths)
+    return {"message": "Files ingested successfully."}
 
-@app.post("/ingest", response_model=IngestResponse)
-async def ingest(files: List[UploadFile] = File(...)):
-    payload = []
-    for f in files:
-        data = await f.read()
-        payload.append((data, f.filename))
-    docs = store.ingest_files(payload)
-    return {"docs": docs}
-
-@app.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
-    answer, citations = answer_query(req.query, top_k=req.top_k, max_sentences=req.max_sentences)
-    return {"answer": answer, "citations": citations}
+@app.post("/query/")
+async def query_text(query: str):
+    context_chunks = rag.query(query)
+    # Here you can call LLM with context_chunks + query
+    from openai import OpenAI
+    client = OpenAI()
+    context = "\n".join(context_chunks)
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a helpful study assistant."},
+            {"role": "user", "content": f"Using this context, {context}, answer: {query}"}
+        ]
+    )
+    return {"answer": response.choices[0].message.content}
