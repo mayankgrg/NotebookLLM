@@ -32,24 +32,21 @@ async def upload_files(files: List[UploadFile] = File(...)):
     rag.ingest_documents(file_paths)
     return {"message": "Files ingested successfully."}
 
+# @app.post("/query/")
+# async def query_text(query: Query):
+#     # context_chunks = rag.query(query)
+#     # Here you can call LLM with context_chunks + query
+#     context_chunks = rag.query(query.query)
+#     answer = llm.generate_answer(query.query, context_chunks)
+#     return {"answer": answer}
+
 @app.post("/query/")
 async def query_text(query: Query):
-    # context_chunks = rag.query(query)
-    # Here you can call LLM with context_chunks + query
-    print(f"Query received: {query}")
-    return {
-        "answer": "This is a placeholder answer."
-        
-    }
-    # from openai import OpenAI
-    # client = OpenAI()
-    # context_chunks = "rag.query(query, top_k=5)"
-    # context = "\n".join(context_chunks)
-    # response = client.chat.completions.create(
-    #     model="gpt-4",
-    #     messages=[
-    #         {"role": "system", "content": "You are a helpful study assistant."},
-    #         {"role": "user", "content": f"Using this context, {context}, answer: {query}"}
-    #     ]
-    # )
-    # return {"answer": response.choices[0].message.content}
+    try:
+        answer = rag.generate_answer(query.query)
+        return {"answer": answer}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+

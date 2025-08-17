@@ -2,6 +2,9 @@ from typing import List
 from pathlib import Path
 import faiss
 import pickle
+from openai import OpenAI
+
+client = OpenAI()
 
 from sentence_transformers import SentenceTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -47,3 +50,15 @@ class RAG:
         D, I = self.index.search(query_vec, top_k)
         results = [self.documents[i] for i in I[0]]
         return results
+
+    def generate_answer(self, query_text: str, top_k=5):
+    # Retrieve relevant chunks
+        chunks = self.query(query_text, top_k)
+
+        # Generate answer using OpenAI
+        prompt = f"Answer the question based on these document chunks:\n\n{chunks}\n\nQuestion: {query_text}\nAnswer:"
+        response = client.chat.completions.create(model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0)
+        answer = response.choices[0].message.content.strip()
+        return answer
