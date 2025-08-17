@@ -1,12 +1,17 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Body
 from typing import List
 import shutil
 from pathlib import Path
+from pydantic import BaseModel
+
 
 from rag_core import RAG
 
 app = FastAPI()
 rag = RAG()
+
+class Query(BaseModel):
+    query: str
 
 UPLOAD_DIR = Path("data/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -27,13 +32,14 @@ async def upload_files(files: List[UploadFile] = File(...)):
     rag.ingest_documents(file_paths)
     return {"message": "Files ingested successfully."}
 
-@app.post("/query")
-async def query_text(query: str):
+@app.post("/query/")
+async def query_text(query: Query):
     # context_chunks = rag.query(query)
     # Here you can call LLM with context_chunks + query
-    return {"query": {
+    print(f"Query received: {query}")
+    return {
         "answer": "This is a placeholder answer."
-        }
+        
     }
     # from openai import OpenAI
     # client = OpenAI()
