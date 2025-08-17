@@ -11,6 +11,10 @@ rag = RAG()
 UPLOAD_DIR = Path("data/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 @app.post("/upload/")
 async def upload_files(files: List[UploadFile] = File(...)):
     file_paths = []
