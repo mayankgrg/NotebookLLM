@@ -2,12 +2,12 @@ from typing import List
 from pathlib import Path
 import faiss
 import pickle
-from openai import OpenAI
+import google.generativeai as genai
 import os
 
-api_key = os.getenv("OPENAI_API_KEY")
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 print(f"OpenAI API Key 7643659435: {api_key}")
-client = OpenAI(api_key=api_key)
+model = genai.GenerativeModel('gemini-pro')
 
 from sentence_transformers import SentenceTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter

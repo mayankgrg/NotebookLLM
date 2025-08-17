@@ -32,6 +32,16 @@ async def upload_files(files: List[UploadFile] = File(...)):
     rag.ingest_documents(file_paths)
     return {"message": "Files ingested successfully."}
 
+@app.get("/docs/")
+async def get_docs():
+    docs = rag.documents
+    return {"docs": docs}
+
+@app.delete("/query/")
+async def delete_query(query: Query):
+    rag.delete_query(query.query)
+    return {"message": "Query deleted successfully."}
+
 # @app.post("/query/")
 # async def query_text(query: Query):
 #     # context_chunks = rag.query(query)
