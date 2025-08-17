@@ -8,6 +8,7 @@ __pycache__/
 .venv/
 venv/
 .env
+backend/data
 
 # FastAPI storage
 backend/storage/
